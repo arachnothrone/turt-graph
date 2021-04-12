@@ -118,7 +118,11 @@ initialTurtleDbl = Ts [initialTurtle,(T' ((300,320), 45, Green', True, -1, -1))]
 --main = runGraph initialTurtleDbl (ex_infSpiral 5)
 --main = runGraph initialTurtle (ex_fracTree' 75)
 --main = runGraph initialTurtle ex_finSpiral1
-main = runGraph initialTurtle ex_circle
+--main :: IO ()
+main = do
+    putStrLn $ "asddfasdf"
+    runGraph initialTurtle ex_circle
+    --return ()
 
 runGraph :: Turtle -> Program' -> IO ()
 -- runGraph tur prg = runGraphics $ do
@@ -130,24 +134,43 @@ runGraph tur prg = do
     (_progName, _args) <- getArgsAndInitialize
     --initialDisplayMode $= [ RGBAMode ]
     initialWindowSize $= Size 1024 1024
+    putStrLn $ "::: ----> 1"
     _window <- createWindow "main window"
-    displayCallback $= display
+    displayCallback $= display _window tur prg
     mainLoop
 
-
-display :: DisplayCallback
-display = do 
-  clear [ColorBuffer]
+display :: Window -> Turtle -> Program' -> DisplayCallback
+display w tur prg = do 
+  --clear [ColorBuffer]
   -- renderPrimitive LineLoop $
   --    mapM_ (\(x, y, z) -> vertex $ Vertex3 x y z) myPoints
-  -- --prnLog
   -- flush
+
+  putStrLn $ "::: display before runFunc"
+  runFunc w tur prg
+  return ()
+
+
+runFunc :: Window -> Turtle -> Program' -> IO (Turtle)
+runFunc w t p = do
+    case t of
+        Dead    ->
+            return t
+        T' ((x,y),a,c,penSt, oldTtl, oldLim) -> do
+            putStrLn $ "::: runFunc T'"
+            renderPrimitive LineLoop $
+                mapM_ (\(x, y, z) -> vertex $ Vertex3 x y z) myPoints
+            flush
+            --runFunc w t p
+            return t
+        Ts tts  ->
+            fmap (\z -> Ts z) $ sequence [runFunc w t p | t <- tts]
 
 
 ex_circleR radius = times 72  (forward radius >*> rightT 5)
 ex_circle = ex_circleR 10 >*> color' Cyan >*> ex_circleR 15
 
 myPoints :: [(GLfloat,GLfloat,GLfloat)]
-myPoints = [ (sin (2*pi*k/12), cos (2*pi*k/12), 0) | k <- [1..12] ]
+myPoints = [(sin (2*pi*k/12), cos (2*pi*k/12), 0) | k <- [1..12]]
 
 
