@@ -13,24 +13,25 @@ data Color' = Red' | Green' | Blue | Yellow | Cyan deriving Show
 -- | Abstract data type Program', Turtle Language
 data Program' where
     -- Combinators:
-    Forward  :: Double -> Program'                -- | Forward movement by n steps
-    Backward :: Double -> Program'                -- | Backward movement by n steps
-    RightT   :: Angle -> Program'                 -- | Right turn, 0 - 360 degree
-    LeftT    :: Angle -> Program'                 -- | Left turn, 0 - 360 degree
-    ColorT   :: Color' -> Program'                 -- | Turtle trace color (from HGL)
-    PenUp    :: Program'                          -- | No trace, stop drawing
-    PenDown  :: Program'                          -- | Start drawing
-    Times    :: Int -> Program' -> Program'        -- | Repeats Program'
-    Lifespan :: Ttl -> Program'                   -- | Kills Turtle after time t
+    Forward  :: Double -> Program'                  -- | Forward movement by n steps
+    Backward :: Double -> Program'                  -- | Backward movement by n steps
+    RightT   :: Angle -> Program'                   -- | Right turn, 0 - 360 degree
+    LeftT    :: Angle -> Program'                   -- | Left turn, 0 - 360 degree
+    ColorT   :: Color' -> Program'                  -- | Turtle trace color (from HGL)
+    PenUp    :: Program'                            -- | No trace, stop drawing
+    PenDown  :: Program'                            -- | Start drawing
+    Times    :: Int -> Program' -> Program'         -- | Repeats Program'
+    Lifespan :: Ttl -> Program'                     -- | Kills Turtle after time t
     Limited  :: Lim -> Program' -> Program'
-    Die      :: Program'                          -- | Kill turtle, no drawing possible
-    Idle     :: Program'                          -- | Do nothing during one time unit
-    Forever  :: Program' -> Program'               -- | Repeats the Program' forever
+    Die      :: Program'                            -- | Kill turtle, no drawing possible
+    Idle     :: Program'                            -- | Do nothing during one time unit
+    Forever  :: Program' -> Program'                -- | Repeats the Program' forever
 
     -- Operations:
     Bind    :: Program' -> Program' -> Program'     -- | Sequencing operator (>*>)
     Split   :: Program' -> Program' -> Program'     -- | Parallel composition, performs
-                                                 -- | two Program's during one time unit
+                                                    -- | two Program's during one time unit
+
 -- | Abstract data type Turtle
 data Turtle where
     -- Constructors:
@@ -170,7 +171,7 @@ runFunc w t p = do
 ex_circleR radius = times 72  (forward radius >*> rightT 5)
 ex_circle = ex_circleR 10 >*> color' Cyan >*> ex_circleR 15
 
-myPoints :: [(GLfloat,GLfloat,GLfloat)]
-myPoints = [(sin (2*pi*k/12), cos (2*pi*k/12), 0) | k <- [1..12]]
+myPoints :: [(GLfloat, GLfloat, GLfloat)]
+myPoints = [(sin(2 * pi * k / 12), cos(2 * pi * k / 12), 0) | k <- [1..12]]
 
 

@@ -99,8 +99,16 @@ square size = times 4 (forward size >*> rightT 90)
 (<|>) = Split
 
 -- | Initial Turtle, located on the screen center, oriented to the North, Red Pen, Pen is Down
-initialTurtle = T ((300,300),0,Red, True, -1, -1)
-initialTurtleDbl = Ts [initialTurtle,(T ((300,320), 45, Green, True, -1, -1))]
+initialTurtle = T ((turtleStartX, turtleStartY), 0, Red, True, -1, -1)
+    where
+        turtleStartX = 600
+        turtleStartY = 600
+
+-- | Two initial turtles
+initialTurtleDbl = Ts [initialTurtle,(T ((turtleStartX, turtleStartY), 45, Green, True, -1, -1))]
+    where
+        turtleStartX = 600
+        turtleStartY = 620
 
 
 -- Main Program
@@ -108,13 +116,13 @@ initialTurtleDbl = Ts [initialTurtle,(T ((300,320), 45, Green, True, -1, -1))]
 --main = runGraph initialTurtle ex_limited
 --main = runGraph initialTurtle ex_forever
 --main = runGraph initialTurtleDbl ex_finiteSpiral
--- main = runGraph initialTurtle (ex_infSpiralTwistCol 5)
--- main = runGraph initialTurtle (ex_fracTree'' 150)
+main = runGraph initialTurtle (ex_infSpiralTwistCol 5)      {- nice -}
+-- main = runGraph initialTurtle (ex_fracTree'' 150)        {- this tree -}
 -- main = runGraph initialTurtleDbl ex_finiteSpiral
 --main = runGraph initialTurtleDbl (ex_infSpiral 5)
 --main = runGraph initialTurtle (ex_fracTree' 75)
 --main = runGraph initialTurtle ex_finSpiral1
-main = runGraph initialTurtle ex_circle
+-- main = runGraph initialTurtle ex_circle
 
 
 
@@ -125,10 +133,17 @@ main = runGraph initialTurtle ex_circle
 -- | Creates graphical window and passes it to the runFunc
 runGraph :: Turtle -> Program -> IO ()
 runGraph tur prg = runGraphics $ do
-    w <- openWindowEx "Turtle!" Nothing (600, 600) DoubleBuffered (Just 0 {- delay, ms -})
-    drawInWindow w (polygon [(0,0),(0,600),(600,600),(600,0)])
+    w <- openWindowEx "Turtle!" Nothing (windowSizeX, windowSizeY) DoubleBuffered (Just 10 {- delay, ms -})
+    drawInWindow w (polygon [(minX, minY), (minX, maxY), (maxX, maxY), (maxX, minY)])
     runFunc w tur prg
     return ()
+        where
+            windowSizeX = 1200
+            windowSizeY = 1200
+            minX = 0
+            minY = 0
+            maxX = windowSizeX
+            maxY = windowSizeY
 
 -- | Function, which fullfills the program execution, one Turtle Command per Time Unit
 -- | After each execution step returns a Turtle in the new State
@@ -140,9 +155,11 @@ runFunc w t p = do
         T ((x,y),a,c,penSt, oldTtl, oldLim) ->
             let ttl = oldTtl - 1 in
             --let tWithTtl = T ((x,y),a,c,penSt, ttl, lim) in
-            if (ttl == 0) then do putStrLn ("Turtle has been destroyed.") >> return Dead
+            if ttl == 0 
+                then do putStrLn ("Turtle has been destroyed.") >> return Dead
                 else
-                    if (oldLim == 0) then return t
+                    if oldLim == 0
+                        then return t
                         else
                             let lim = oldLim - 1 in
                             let tWithTtl = T ((x,y),a,c,penSt, ttl, lim) in
@@ -217,6 +234,7 @@ runFunc w t p = do
                                     t2 <- runFunc w t p1
                                     runFunc w t2 p2
                                 p1 `Split` p2 -> do
+                                    putStrLn $ "Split turtles"
                                     t1 <- runFunc w t p1
                                     t2 <- runFunc w t p2
                                     return $ Ts [t1,t2]
