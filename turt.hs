@@ -86,11 +86,18 @@ idle = Idle
 
 -- Higher-order commands:
 circle :: Double -> Program
-circle radius = times 72 (forward st >*> rightT 5)
-    where st = (2 * pi * radius) / 72
+circle radius = times arcNum (forward st >*> rightT arcAngleStepDeg)
+    where 
+        arcNum :: Int
+        arcNum = 72
+        arcAngleStepDeg = 5
+        st = (2 * pi * radius) / 72
 
 square :: Double -> Program
-square size = times 4 (forward size >*> rightT 90)
+square size = times squareSidesNum (forward size >*> rightT squareAngleDeg)
+    where
+        squareSidesNum = 4
+        squareAngleDeg = 90
 
 (>*>) :: Program -> Program -> Program
 (>*>) = Bind
@@ -116,13 +123,13 @@ initialTurtleDbl = Ts [initialTurtle,(T ((turtleStartX, turtleStartY), 45, Green
 --main = runGraph initialTurtle ex_limited
 --main = runGraph initialTurtle ex_forever
 --main = runGraph initialTurtleDbl ex_finiteSpiral
-main = runGraph initialTurtle (ex_infSpiralTwistCol 5)      {- nice -}
+------main = runGraph initialTurtle (ex_infSpiralTwistCol 5)      {- nice -}
 -- main = runGraph initialTurtle (ex_fracTree'' 150)        {- this tree -}
 -- main = runGraph initialTurtleDbl ex_finiteSpiral
 --main = runGraph initialTurtleDbl (ex_infSpiral 5)
 --main = runGraph initialTurtle (ex_fracTree' 75)
 --main = runGraph initialTurtle ex_finSpiral1
--- main = runGraph initialTurtle ex_circle
+main = runGraph initialTurtle ex_circle
 
 
 
@@ -392,7 +399,10 @@ ex_tree_forever = forward 75 >*> lifespan 20 >*> forever (forward 10 >*> ((right
 
 
 ex_circleR radius = times 72  (forward radius >*> rightT 5)
-ex_circle = ex_circleR 10 >*> color Cyan >*> ex_circleR 15
+-- ex_circle = ex_circleR 10 >*> color Cyan >*> ex_circleR 15
+ex_circle = circle 100 >*> 
+            color Cyan >*> circle 150 >*> 
+            color Black >*> square 75
 
 {-
 
