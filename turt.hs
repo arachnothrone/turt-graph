@@ -123,13 +123,13 @@ initialTurtleDbl = Ts [initialTurtle,(T ((turtleStartX, turtleStartY), 45, Green
 --main = runGraph initialTurtle ex_limited
 --main = runGraph initialTurtle ex_forever
 --main = runGraph initialTurtleDbl ex_finiteSpiral
-------main = runGraph initialTurtle (ex_infSpiralTwistCol 5)      {- nice -}
+main = runGraph initialTurtle (ex_infSpiralTwistCol 5)      {- nice -}
 -- main = runGraph initialTurtle (ex_fracTree'' 150)        {- this tree -}
 -- main = runGraph initialTurtleDbl ex_finiteSpiral
 --main = runGraph initialTurtleDbl (ex_infSpiral 5)
 --main = runGraph initialTurtle (ex_fracTree' 75)
 --main = runGraph initialTurtle ex_finSpiral1
-main = runGraph initialTurtle ex_circle
+----main = runGraph initialTurtle ex_circle
 
 
 
@@ -159,7 +159,8 @@ runFunc w t p = do
     case t of
         Dead    ->
             return t
-        T ((x,y),a,c,penSt, oldTtl, oldLim) ->
+        T ((x, y), oldAngle, c, penSt, oldTtl, oldLim) ->
+            let a = realToFrac(round(oldAngle) `mod` 360) in 
             let ttl = oldTtl - 1 in
             --let tWithTtl = T ((x,y),a,c,penSt, ttl, lim) in
             if ttl == 0 
@@ -169,7 +170,7 @@ runFunc w t p = do
                         then return t
                         else
                             let lim = oldLim - 1 in
-                            let tWithTtl = T ((x,y),a,c,penSt, ttl, lim) in
+                            let tWithTtl = T ((x, y), a, c, penSt, ttl, lim) in
                             case p of
                                 Die -> do
                                     putStrLn $ "Killing the turtle"
