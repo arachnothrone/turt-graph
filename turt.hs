@@ -3,6 +3,7 @@ module Main where
 
 import Control.Monad hiding (forever)
 import Graphics.HGL
+import Control.Concurrent.ParallelIO
 
 -- | Module Turtle, EDSL Deep Embedding
 
@@ -123,8 +124,8 @@ initialTurtleDbl = Ts [initialTurtle,(T ((turtleStartX, turtleStartY), 45, Green
 --main = runGraph initialTurtle ex_limited
 --main = runGraph initialTurtle ex_forever
 --main = runGraph initialTurtleDbl ex_finiteSpiral
-main = runGraph initialTurtle (ex_infSpiralTwistCol 5)      {- nice -}
--- main = runGraph initialTurtle (ex_fracTree'' 150)        {- this tree -}
+-- -- -- main = runGraph initialTurtle (ex_infSpiralTwistCol 5)      {- nice -}
+main = runGraph initialTurtle (ex_fracTree'' 150)        {- this tree -}
 -- main = runGraph initialTurtleDbl ex_finiteSpiral
 --main = runGraph initialTurtleDbl (ex_infSpiral 5)
 --main = runGraph initialTurtle (ex_fracTree' 75)
@@ -250,7 +251,8 @@ runFunc w t p = do
         -- If there are more than one Turtle, execute current command for all of them
         -- sequencing the list of runFunc applied to turtles
         Ts tts ->
-            fmap (\z -> Ts z) $ sequence [runFunc w t p | t <- tts]
+            fmap (\z -> Ts z) $ parallel [runFunc w t p | t <- tts]
+
 
 
 ex1 = forward 10
