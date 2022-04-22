@@ -38,10 +38,11 @@ data Turtle where
     -- | operator (<|>)
     Ts :: [Turtle] -> Turtle
 -- | Turtle State: Coordinates (X, Y); Orientation (Deg); Color (HGL); Pen State (Up/Down)
-type TurtleState = (Coords, Angle, Color, Bool, Ttl, Lim)
+type TurtleState = (Coords, Angle, Color, Bool, Ttl, Lim, TurtID)
 type Coords = (Double, Double)
 type Ttl = Int
 type Lim = Int
+type TurtID = Int
 --type Angle = Int
 --data Color = Red | Green | Blue | Yellow deriving Show
 
@@ -107,13 +108,13 @@ square size = times squareSidesNum (forward size >*> rightT squareAngleDeg)
 (<|>) = Split
 
 -- | Initial Turtle, located on the screen center, oriented to the North, Red Pen, Pen is Down
-initialTurtle = T ((turtleStartX, turtleStartY), 0, Red, True, -1, -1)
+initialTurtle = T ((turtleStartX, turtleStartY), 0, Red, True, -1, -1, 0)
     where
         turtleStartX = 600
         turtleStartY = 600
 
 -- | Two initial turtles
-initialTurtleDbl = Ts [initialTurtle,(T ((turtleStartX, turtleStartY), 45, Green, True, -1, -1))]
+initialTurtleDbl = Ts [initialTurtle,(T ((turtleStartX, turtleStartY), 45, Green, True, -1, -1, 0))]
     where
         turtleStartX = 600
         turtleStartY = 620
@@ -125,7 +126,8 @@ initialTurtleDbl = Ts [initialTurtle,(T ((turtleStartX, turtleStartY), 45, Green
 --main = runGraph initialTurtle ex_forever
 --main = runGraph initialTurtleDbl ex_finiteSpiral
 -- -- -- main = runGraph initialTurtle (ex_infSpiralTwistCol 5)      {- nice -}
-main = runGraph initialTurtle (ex_fracTree'' 150)        {- this tree -}
+-- -- -- main = runGraph initialTurtle (ex_fracTree'' 150)        {- this tree -}
+main = runGraph initialTurtle (ex_split 30)                     {- split -}
 -- main = runGraph initialTurtleDbl ex_finiteSpiral
 --main = runGraph initialTurtleDbl (ex_infSpiral 5)
 --main = runGraph initialTurtle (ex_fracTree' 75)
@@ -153,6 +155,7 @@ runGraph tur prg = runGraphics $ do
             maxX = windowSizeX
             maxY = windowSizeY
 
+-- TODO: add cycle number
 -- | Function, which fullfills the program execution, one Turtle Command per Time Unit
 -- | After each execution step returns a Turtle in the new State
 runFunc :: Window -> Turtle -> Program -> IO (Turtle)
@@ -160,81 +163,81 @@ runFunc w t p = do
     case t of
         Dead    ->
             return t
-        T ((x, y), oldAngle, c, penSt, oldTtl, oldLim) ->
+        T ((x, y), oldAngle, c, penSt, oldTtl, oldLim, tId) ->
             let a = realToFrac(round(oldAngle) `mod` 360) in 
             let ttl = oldTtl - 1 in
             --let tWithTtl = T ((x,y),a,c,penSt, ttl, lim) in
             if ttl == 0 
-                then do putStrLn ("Turtle has been destroyed.") >> return Dead
+                then do putStrLn ("Turtle has been destroyed, id = " ++ show tId) >> return Dead
                 else
                     if oldLim == 0
                         then return t
                         else
                             let lim = oldLim - 1 in
-                            let tWithTtl = T ((x, y), a, c, penSt, ttl, lim) in
+                            let tWithTtl = T ((x, y), a, c, penSt, ttl, lim, tId) in
                             case p of
                                 Die -> do
-                                    putStrLn $ "Killing the turtle"
+                                    putStrLn $ "Killing the turtle, id = " ++ show tId
                                     getWindowTick w
                                     return Dead
                                 Idle -> do
-                                    putStrLn $ "Idle cycle"
+                                    putStrLn $ "Idle cycle, id = " ++ show tId
                                     getWindowTick w
                                     return $ tWithTtl
                                 Forward n -> do
-                                    putStrLn $ "Forward movement by " ++ show n ++ " steps, Turtle now is here: (" ++ show newX ++ ", " ++ show newY ++ ", angle " ++ show a ++ ")"
+                                    putStrLn $ "Forward movement by " ++ show n ++ " steps, Turtle now is here: (" ++ show newX ++ ", " ++ show newY ++ ", angle " ++ show a ++ "), id = " ++ show tId
                                     getWindowTick w
                                     drawInWindow w $ withColor penColor $ line (round x, round y) (round newX, round newY)
-                                    return (T ((newX, newY),a,c, penSt, ttl, lim))
+                                    return (T ((newX, newY),a,c, penSt, ttl, lim, tId))
                                         where
                                             newX = x + n * sin(a*(pi/180))
                                             newY = {-600 - -} (y - n * (cos(a*(pi/180))) )
                                             penColor = if penSt then c else White
                                 Backward n -> do
-                                    putStrLn $ "Backward move by " ++ show n ++ " steps, Turtle now is here: (" ++ show newX ++ ", " ++ show newY ++ ", angle " ++ show a ++ ")"
+                                    putStrLn $ "Backward move by " ++ show n ++ " steps, Turtle now is here: (" ++ show newX ++ ", " ++ show newY ++ ", angle " ++ show a ++ "), id = " ++ show tId
                                     getWindowTick w
                                     drawInWindow w $ withColor penColor $ line (round x, round y) (round newX, round newY)
-                                    return (T ((newX, newY),a,c, penSt, ttl, lim))
+                                    return (T ((newX, newY),a,c, penSt, ttl, lim, tId))
                                         where
                                             newX = x - n * sin(a*(pi/180))
                                             newY = {-600 - -} (y + n * (cos(a*(pi/180))) )
                                             penColor = if penSt then c else White
                                 RightT n -> do
-                                    putStrLn $ "Right turn: " ++ show n
+                                    putStrLn $ "Right turn: " ++ show n ++ " , id = " ++ show tId
                                     getWindowTick w
-                                    return (T ((x,y), a + n, c, penSt, ttl, lim))
+                                    return (T ((x,y), a + n, c, penSt, ttl, lim, tId))
                                 LeftT n -> do
-                                    putStrLn $ "Left " ++ show n
+                                    putStrLn $ "Left " ++ show n ++ " , id = " ++ show tId
                                     getWindowTick w
-                                    return (T ((x,y), a + (360 - n), c, penSt, ttl, lim))
+                                    return (T ((x,y), a + (360 - n), c, penSt, ttl, lim, tId))
                                 ColorT newColor -> do
-                                    putStrLn $ "Changing color for turtle to: " ++ show newColor
+                                    putStrLn $ "Changing color for turtle to: " ++ show newColor ++ ", id = " ++ show tId
                                     getWindowTick w
-                                    return $ T ((x,y),a,newColor, penSt, ttl, lim)
+                                    return $ T ((x,y),a,newColor, penSt, ttl, lim, tId)
                                 Times n pr -> do
-                                    putStrLn $ "Repeating program for times: " ++ show n
+                                    putStrLn $ "Repeating program for times: " ++ show n ++ " , id = " ++ show tId
                                     getWindowTick w
                                     foldM (\trtl prgrm -> runFunc w trtl prgrm) t (replicate n pr)
                                 Lifespan ttl -> do
-                                    putStrLn $ "Lifespan set to: " ++ show ttl
+                                    putStrLn $ "Lifespan set to: " ++ show ttl ++ " , id = " ++ show tId
                                     getWindowTick w
-                                    return $ T ((x, y), a, c, penSt, ttl, lim)
+                                    return $ T ((x, y), a, c, penSt, ttl, lim, tId)
                                 Limited limNew pr -> do                                    -- pr = forward 10 >*> f 20 >*> f 30 >*> p2
-                                    putStrLn $ "Time limit set to: " ++ show limNew
+                                    putStrLn $ "Time limit set to: " ++ show limNew ++ " , id = " ++ show tId
                                     getWindowTick w
-                                    (T ((x, y), a, c, p, t, l)) <- runFunc w (T ((x, y), a, c, penSt, ttl, limNew)) pr
-                                    putStrLn "Limited END"
-                                    return $ T ((x, y), a, c, p, t, -1)       -- reset lim counter
+                                    (T ((x, y), a, c, p, t, l, id)) <- runFunc w (T ((x, y), a, c, penSt, ttl, limNew, tId)) pr
+                                    putStrLn $ "Limited END, id = " ++ show id 
+                                    return $ T ((x, y), a, c, p, t, -1, id)       -- reset lim counter
 
                                     --return $ T ((x, y), a, c, penSt, ttl)
                                 PenDown -> do
-                                    putStrLn $ "Start drawing with color: " ++ show c
+                                    putStrLn $ "Start drawing with color: " ++ show c ++ " , id = " ++ show tId
                                     getWindowTick w
-                                    return $ T ((x, y), a, c, True, ttl, lim)
+                                    return $ T ((x, y), a, c, True, ttl, lim, tId)
                                 PenUp -> do
-                                    putStrLn $ "Stop drawing"
+                                    putStrLn $ "Stop drawing, id = " ++ show tId
                                     getWindowTick w
-                                    return $ T ((x, y), a, c, False, ttl, lim)
+                                    return $ T ((x, y), a, c, False, ttl, lim, tId)
                                 Forever pr ->
                                     --pr `Bind` pr
                                     foldM (\trtl prgrm -> runFunc w trtl prgrm) t (if lim >= 0 then take lim (repeat pr) else (repeat pr))
@@ -243,9 +246,12 @@ runFunc w t p = do
                                     t2 <- runFunc w t p1
                                     runFunc w t2 p2
                                 p1 `Split` p2 -> do
-                                    putStrLn $ "Split turtles"
+                                    T ((_x, _y), _a, _c, _p, _t, _l, _id) <- return t
+                                    putStrLn $ "Split turtles, old turtle with id = " ++ show _id ++ ", new turtle with id = " ++ show (_id + 1)
                                     t1 <- runFunc w t p1
-                                    t2 <- runFunc w t p2
+                                    t2 <- runFunc w (T ((_x, _y), _a, _c, _p, _t, _l, _id + 1)) p2
+                                    -- t1 <- runFunc w t p1
+                                    -- t2 <- runFunc w t p2
                                     return $ Ts [t1,t2]
           --      _ -> return t
         -- If there are more than one Turtle, execute current command for all of them
@@ -395,6 +401,8 @@ ex_fracTree'' step = forward (step) >*> forward step >*> ((rightT 30 <|> leftT 3
             >*> forward (step / 5) >*> ((rightT 30 <|> leftT 30) <|> (rightT 45 <|> leftT 45))
             >*> forward (step / 6) >*> ((rightT 30 <|> leftT 30) <|> (rightT 45 <|> leftT 45))  >*> color Yellow
             >*> forward (step / 7) >*> (rightT 30 <|> leftT 30) >*> forward (step / 8)
+
+ex_split step = forever (color Magenta >*> forward (step) >*> (rightT 45 <|> leftT 45) >*> idle >*> color Green >*> forward (step) >*> (rightT 45 <|> leftT 45) >*> idle)
 
 
 ex_tree_forever :: Program
