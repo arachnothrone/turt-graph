@@ -134,7 +134,9 @@ main = runGraph initialTurtle (ex_split 30)                     {- split -}
 --main = runGraph initialTurtle ex_finSpiral1
 ----main = runGraph initialTurtle ex_circle
 
-
+-- | Constants
+logDepthMultiplier :: Int
+logDepthMultiplier = 5
 
 -- | Run Functions:
 
@@ -181,11 +183,14 @@ runFunc w t p = do
                                     getWindowTick w
                                     return Dead
                                 Idle -> do
-                                    putStrLn $ "Idle cycle, id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Idle cycle, id = " 
+                                        ++ show tId
                                     getWindowTick w
                                     return $ tWithTtl
                                 Forward n -> do
-                                    putStrLn $ "Forward movement by " ++ show n ++ " steps, Turtle now is here: (" ++ show newX ++ ", " ++ show newY ++ ", angle " ++ show a ++ "), id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Forward movement by " 
+                                        ++ show n ++ " steps, Turtle now is here: (" ++ show newX ++ ", " ++ show newY 
+                                        ++ ", angle " ++ show a ++ "), id = " ++ show tId
                                     getWindowTick w
                                     drawInWindow w $ withColor penColor $ line (round x, round y) (round newX, round newY)
                                     return (T ((newX, newY),a,c, penSt, ttl, lim, tId))
@@ -194,7 +199,9 @@ runFunc w t p = do
                                             newY = {-600 - -} (y - n * (cos(a*(pi/180))) )
                                             penColor = if penSt then c else White
                                 Backward n -> do
-                                    putStrLn $ "Backward move by " ++ show n ++ " steps, Turtle now is here: (" ++ show newX ++ ", " ++ show newY ++ ", angle " ++ show a ++ "), id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Backward move by " 
+                                        ++ show n ++ " steps, Turtle now is here: (" ++ show newX ++ ", " ++ show newY 
+                                        ++ ", angle " ++ show a ++ "), id = " ++ show tId
                                     getWindowTick w
                                     drawInWindow w $ withColor penColor $ line (round x, round y) (round newX, round newY)
                                     return (T ((newX, newY),a,c, penSt, ttl, lim, tId))
@@ -203,39 +210,48 @@ runFunc w t p = do
                                             newY = {-600 - -} (y + n * (cos(a*(pi/180))) )
                                             penColor = if penSt then c else White
                                 RightT n -> do
-                                    putStrLn $ "Right turn: " ++ show n ++ " , id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Right turn: " 
+                                        ++ show n ++ " , id = " ++ show tId
                                     getWindowTick w
                                     return (T ((x,y), a + n, c, penSt, ttl, lim, tId))
                                 LeftT n -> do
-                                    putStrLn $ "Left " ++ show n ++ " , id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Left " ++ show n 
+                                        ++ " , id = " ++ show tId
                                     getWindowTick w
                                     return (T ((x,y), a + (360 - n), c, penSt, ttl, lim, tId))
                                 ColorT newColor -> do
-                                    putStrLn $ "Changing color for turtle to: " ++ show newColor ++ ", id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") 
+                                        ++ "Changing color for turtle to: " ++ show newColor ++ ", id = " ++ show tId
                                     getWindowTick w
                                     return $ T ((x,y),a,newColor, penSt, ttl, lim, tId)
                                 Times n pr -> do
-                                    putStrLn $ "Repeating program for times: " ++ show n ++ " , id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") 
+                                        ++ "Repeating program for times: " ++ show n ++ " , id = " ++ show tId
                                     getWindowTick w
                                     foldM (\trtl prgrm -> runFunc w trtl prgrm) t (replicate n pr)
                                 Lifespan ttl -> do
-                                    putStrLn $ "Lifespan set to: " ++ show ttl ++ " , id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Lifespan set to: " 
+                                        ++ show ttl ++ " , id = " ++ show tId
                                     getWindowTick w
                                     return $ T ((x, y), a, c, penSt, ttl, lim, tId)
                                 Limited limNew pr -> do                                    -- pr = forward 10 >*> f 20 >*> f 30 >*> p2
-                                    putStrLn $ "Time limit set to: " ++ show limNew ++ " , id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Time limit set to: " 
+                                        ++ show limNew ++ " , id = " ++ show tId
                                     getWindowTick w
                                     (T ((x, y), a, c, p, t, l, id)) <- runFunc w (T ((x, y), a, c, penSt, ttl, limNew, tId)) pr
-                                    putStrLn $ "Limited END, id = " ++ show id 
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Limited END, id = " 
+                                        ++ show id 
                                     return $ T ((x, y), a, c, p, t, -1, id)       -- reset lim counter
 
                                     --return $ T ((x, y), a, c, penSt, ttl)
                                 PenDown -> do
-                                    putStrLn $ "Start drawing with color: " ++ show c ++ " , id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") 
+                                        ++ "Start drawing with color: " ++ show c ++ " , id = " ++ show tId
                                     getWindowTick w
                                     return $ T ((x, y), a, c, True, ttl, lim, tId)
                                 PenUp -> do
-                                    putStrLn $ "Stop drawing, id = " ++ show tId
+                                    putStrLn $ show (concat $ replicate (tId * logDepthMultiplier) ".") ++ "Stop drawing, id = " 
+                                        ++ show tId
                                     getWindowTick w
                                     return $ T ((x, y), a, c, False, ttl, lim, tId)
                                 Forever pr ->
@@ -247,7 +263,9 @@ runFunc w t p = do
                                     runFunc w t2 p2
                                 p1 `Split` p2 -> do
                                     T ((_x, _y), _a, _c, _p, _t, _l, _id) <- return t
-                                    putStrLn $ "Split turtles, old turtle with id = " ++ show _id ++ ", new turtle with id = " ++ show (_id + 1)
+                                    putStrLn $ show (concat $ replicate (_id * logDepthMultiplier) ".") 
+                                        ++ "Split turtles, old turtle with id = " ++ show _id ++ ", new turtle with id = " 
+                                        ++ show (_id + 1)
                                     t1 <- runFunc w t p1
                                     t2 <- runFunc w (T ((_x, _y), _a, _c, _p, _t, _l, _id + 1)) p2
                                     -- t1 <- runFunc w t p1
@@ -280,7 +298,8 @@ ex3 = (forward 100) >*> color Green >*>
 
 ex31 = (forward 100) >*> color Green >*>
        ((rightT 45) <|> (leftT 45 >*> times 200 (idle) >*> forward 123)) >*>
-       (forward 150) >*> (rightT 30 <|> leftT 30) >*> forward 150 >*> lifespan 55 >*> times 50 (forward 30 >*> leftT 70 >*> forward 33 >*> leftT 80 >*> forward 31 >*> leftT 88)
+       (forward 150) >*> (rightT 30 <|> leftT 30) >*> forward 150 >*> lifespan 55 >*> times 50 (forward 30 >*> leftT 70 
+            >*> forward 33 >*> leftT 80 >*> forward 31 >*> leftT 88)
 
 
 ex4 = (forward 11) >*>
@@ -378,7 +397,14 @@ spStep x = forward x >*> rightT 90 >*> spStep (x + 5)
 ex_finSpiral :: Double -> Program
 --ex_finSpiral = lifespan 8 >*>
 ex_finSpiral iStep = forward (10 + iStep) >*> rightT 95 >*>
-    forward (10 + iStep) >*> rightT 95 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88
+    forward (10 + iStep) >*> rightT 95 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 
+        >*> forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 
+        >*> forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 
+        >*> forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 
+        >*> forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 
+        >*> forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 
+        >*> forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 >*>forward (10 + iStep) >*> rightT 88 
+        >*> forward (10 + iStep) >*> rightT 88
 -- Fractal tree 1
 ex_fracTree :: Double -> Program
 ex_fracTree step = color Green >*> forward (step) >*> (rightT 30 <|> leftT 30)
@@ -402,11 +428,13 @@ ex_fracTree'' step = forward (step) >*> forward step >*> ((rightT 30 <|> leftT 3
             >*> forward (step / 6) >*> ((rightT 30 <|> leftT 30) <|> (rightT 45 <|> leftT 45))  >*> color Yellow
             >*> forward (step / 7) >*> (rightT 30 <|> leftT 30) >*> forward (step / 8)
 
-ex_split step = forever (color Magenta >*> forward (step) >*> (rightT 45 <|> leftT 45) >*> idle >*> color Green >*> forward (step) >*> (rightT 45 <|> leftT 45) >*> idle)
+ex_split step = forever (color Magenta >*> forward (step) >*> (rightT 45 <|> leftT 45) >*> idle >*> color Green >*> forward (step) 
+    >*> (rightT 45 <|> leftT 45) >*> idle)
 
 
 ex_tree_forever :: Program
-ex_tree_forever = forward 75 >*> lifespan 20 >*> forever (forward 10 >*> ((rightT 30 >*> color Green) <|> (leftT 30 >*> color Blue >*> forward 5)) )
+ex_tree_forever = forward 75 >*> lifespan 20 >*> forever (forward 10 >*> ((rightT 30 >*> color Green) <|> (leftT 30 >*> color Blue 
+    >*> forward 5)) )
 
 
 ex_circleR radius = times 72  (forward radius >*> rightT 5)
@@ -416,14 +444,12 @@ ex_circle = circle 100 >*>
             color Black >*> square 75
 
 {-
-
-Black
-Blue
-Green
-Cyan
-Red
-Magenta
-Yellow
-White
-
+    Black
+    Blue
+    Green
+    Cyan
+    Red
+    Magenta
+    Yellow
+    White
 -}
